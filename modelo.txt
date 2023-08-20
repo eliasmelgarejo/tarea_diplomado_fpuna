@@ -1,0 +1,47 @@
+CREATE STREAM finnhub_trades_stream (
+    price DOUBLE,
+    symbol STRING,
+    timestamp STRING,
+    volume DOUBLE
+) WITH (
+    KAFKA_TOPIC='finnhub-trades',
+    VALUE_FORMAT='JSON'
+);
+
+
+docker compose up -d
+
+docker ps
+
+docker exec -it redpanda /bin/sh
+
+
+rpk topic create finnhub-trades --brokers=localhost:9092
+
+docker exec -it ksqldb-cli ksql http://ksqldb-server:8088
+
+//este es el modelo que me funciono
+
+CREATE STREAM finnhub_trades_stream (
+    c ARRAY<STRING>,
+    p DOUBLE,
+    s STRING,
+    t BIGINT,
+    v DOUBLE
+) WITH (
+    KAFKA_TOPIC='finnhub-trades',
+    VALUE_FORMAT='JSON'
+);
+
+
+1.¿Cuál fue el promedio ponderado de precio de una unidad por cada uno de los símbolos procesados? (e.j. AAPL)
+- CREATE TABLE promedio AS select s, AVG(p) from FINNHUB_TRADES_STREAM GROUP BY s EMIT CHANGES;
+
+2.¿Cuántas transacciones se procesaron por símbolo?
+- CREATE TABLE contador AS select s, COUNT(p) from FINNHUB_TRADES_STREAM GROUP BY s EMIT CHANGES;
+
+3.¿Cuál fue el máximo precio registrado por símbolo?
+- CREATE TABLE maximo AS select s, MAX(p) from FINNHUB_TRADES_STREAM GROUP BY s EMIT CHANGES;
+
+4.¿Cuál fue el mínimo precio registrado por símbolo?
+- CREATE TABLE minimo AS select s, MIN(p) from FINNHUB_TRADES_STREAM GROUP BY s EMIT CHANGES;
